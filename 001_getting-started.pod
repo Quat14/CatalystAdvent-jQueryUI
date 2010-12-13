@@ -123,6 +123,8 @@ it will be done through the templates.  There's a lot we can do in Catalyst
 to make things easier in jQuery, but we'll have to get to those later.  Let's
 get started.
 
+=head4 The jQuery Frameworks
+
 First, in setting up our repo, we'll create a place for jQuery to live.
 Remember that whatever we put under the ./root/static directory will be
 files that we're expecting to access directly with hyperlinks; that means
@@ -156,6 +158,8 @@ this:
 	./root/static/javascript/ext/jquery-ui/ui
 	./root/static/javascript/ext/jquery-ui/docs
 	...
+
+=head4 Plugins (third-party and in-house)
 
 One of the great things about jQuery is the very active user community.  You
 should get into the habit of using jQuery plugins liberally; if you choose
