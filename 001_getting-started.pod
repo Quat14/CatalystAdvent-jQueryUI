@@ -1,0 +1,194 @@
+=head1 Getting Started with Catalyst and jQuery (and jQuery UI)
+
+=head2 A few initial comments
+
+For the duration of this article we'll be assuming that you want to use jQuery
+and jQuery-UI with Catalyst, and that you'll be using the Template Toolkit for
+your templating engine.  Of course, this is perl and There's More Than One Way
+To Do It -- so you can use something else instead of TT, or tweak our 
+suggestions a bit.  If you do, things will probably Just Work.   Have fun, and
+stay DRY.
+
+This article is aimed at developers new to Catalyst and especially Catalyst
+with jQuery.  It is designed to help someone go from 0 to App as quickly as
+possible.
+
+The commands in the article assume you're using Linux.  If you aren't, adjust
+the commands accordingly (or switch to Linux ;).
+
+=head2 What you need to know already.
+
+This article assumes you already know some things.  If you don't already,
+please follow the provided links to read about those topics before continuing
+with this article.
+
+=over
+
+=item Catalyst L<read more|http://www.catalystframework.org/>
+
+The perl MVC framework
+
+=item HTML::FormHandler L<read more|http://search.cpan.org/~gshank/HTML-FormHandler-0.32005/lib/HTML/FormHandler.pm>
+
+For creating, displaying, and validating forms
+
+=item jQuery L<read more|http://jquery.com/>
+
+The Write Less, Do More, JavaScript Library
+
+=item jQuery UI L<read more|http://jqueryui.com/>
+
+UI enhancement framework on top of jQuery
+
+=item Template Toolkit L<read more|http://template-toolkit.org/>
+
+A fast, flexible and highly extensible template processing system.
+
+=back
+
+=head2 Setting up your project
+
+For our purposes, we'll be working on a project that depicts a pizzaria
+(called, creatively, "Pizzaria") that takes orders online.  
+
+=head3 Choosing a namespace
+
+Because our company is called Pizzaria, we're going to call our app the same.
+Now, we could simply run
+
+	catalyst.pl Pizzaria
+
+and get an application that's set up like this:
+
+	./Pizzaria
+	./Pizzaria/script
+	./Pizzaria/script/...
+	./Pizzaria/lib
+	./Pizzaria/lib/Pizzaria
+	./Pizzaria/lib/Pizzaria/Model
+	./Pizzaria/lib/Pizzaria/View
+	./Pizzaria/lib/Pizzaria/Controller
+	./Pizzaria/lib/Pizzaria/Controller/Root.pm
+	./Pizzaria/lib/Pizzaria.pm
+	./Pizzaria/root
+	./Pizzaria/root/static
+	./Pizzaria/root/static/images
+	./Pizzaria/root/static/images/...
+	./Pizzaria/root/favicon.ico
+	./Pizzaria/t
+	./Pizzaria/t/...
+
+That's fine, but it has one limitation that's sort of needless:  it assumes
+that the web interface is the only one we'll be making.  As a matter of good
+practice, let's just start off right and name it according to what we're
+actually making:  A B<web> interface to our Pizzaria's software.
+
+	$ catalyst.pl Pizzaria::Web
+	created "Pizzaria-Web"
+	created "Pizzaria-Web/script"
+	created "Pizzaria-Web/lib"
+	created "Pizzaria-Web/root"
+	created "Pizzaria-Web/root/static"
+	created "Pizzaria-Web/root/static/images"
+	created "Pizzaria-Web/t"
+	created "Pizzaria-Web/lib/Pizzaria/Web"
+	created "Pizzaria-Web/lib/Pizzaria/Web/Model"
+	created "Pizzaria-Web/lib/Pizzaria/Web/View"
+	created "Pizzaria-Web/lib/Pizzaria/Web/Controller"
+	created "Pizzaria-Web/pizzaria_web.conf"
+	created "Pizzaria-Web/lib/Pizzaria/Web.pm"
+	created "Pizzaria-Web/lib/Pizzaria/Web/Controller/Root.pm"
+	created "Pizzaria-Web/README"
+	...
+
+That's better.  Now when we are ready to create other interfaces to our
+application, it won't require any refactoring; we'll simply be able to add
+Pizzaria::CLI, etc.
+
+Because I like to, I always rename the app's directory to omit the "-Web":
+
+	$ mv Pizzaria-Web Pizzaria
+	$ cd Pizzaria
+
+=head3 Setting up jQuery and jQuery UI
+
+For ease, throughout the remainder of this article, I'll refer to jQuery and
+jQuery UI as "jQuery".  You may, of course, use jQuery without the UI libs,
+and you may use the UI without ever manually utilizing jQuery (though it will
+still be loaded as a dependency, of course), but for our purposes, I'll assume
+that you're going to be using both.
+
+Because jQuery is a client-side JavaScript library, most of the actual use of
+it will be done through the templates.  There's a lot we can do in Catalyst
+to make things easier in jQuery, but we'll have to get to those later.  Let's
+get started.
+
+First, in setting up our repo, we'll create a place for jQuery to live.
+Remember that whatever we put under the ./root/static directory will be
+files that we're expecting to access directly with hyperlinks; that means
+we can effectively consider this something like the "public API" of our 
+application resources.  With that in mind, you want the names to be
+semantically meaningful.  And, as always, Do The Right Thing -- don't 
+take shortcuts =)
+
+We'll have all our javascript live in C<./root/static/javascript/>.  
+Similarly, css will live in C<./root/static/css/>, images in
+C<./root/static/images/>, and so forth.  Our templates will live in 
+C<./root/src/>.
+
+	$	mkdir -p ./root/static/javascript/ext
+
+We'll put all third-party javascript libs in C<./root/static/javascript/ext/>
+and know never to edit anything in there (right? =)  Separating external libs
+that way will also help future maintainers and developers to understand how
+the application is structured.
+
+Next, we'll download the latest, greatest versions of jQuery and jQuery UI
+from their respective web pages (linked above) and unzip them into those 
+directories.  When you're done, your directory structure should look like
+this:
+
+	./root/static/javascript/ext/jquery
+	./root/static/javascript/ext/jquery/jquery-1.4.2.min.js
+	./root/static/javascript/ext/jquery-ui
+	./root/static/javascript/ext/jquery-ui/AUTHORS.txt
+	./root/static/javascript/ext/jquery-ui/jquery-1.4.2.js
+	./root/static/javascript/ext/jquery-ui/ui
+	./root/static/javascript/ext/jquery-ui/docs
+	...
+
+One of the great things about jQuery is the very active user community.  You
+should get into the habit of using jQuery plugins liberally; if you choose
+them well, they're light-weight, efficient, and very effective.  Let's create
+a place for our jQuery plugins to live.
+
+	$ mkdir -p ./root/static/javascript/ext/plugins/jquery
+	$ mkdir -p ./root/static/javascript/ext/plugins/jquery-ui
+
+Of course, if we start using other third-party JavaSCript plugins we can
+just add them.  For example, if we wanted to use CKEditor, as I did for a 
+project at work recently, or Flot, or any other third-party JS lib, 
+it would be very easy simply to add the spaces for it.
+
+	$ # mkdir -p ./root/static/javascript/ext/ckeditor
+	$ # mkdir -p ./root/static/javascript/ext/plugins/ckeditor
+
+and we can just add files into those spaces as we need to.  (I commented out
+the commands below in case someone isn't reading carefully
+and blindly copies/pastes all the commands in this article =)
+
+We're also going to want to be developing internal plugins from time to
+time, probably.  Let's create a place for those to live as well, for the sake
+of completeness.
+
+	$ mkdir -p ./root/static/javascript/plugins/jquery
+
+Now when you want to create a generic jQuery plugin (that's not specific to
+a particular part of your application's view domain) just drop it into that
+directory.
+
+Great -- now we're ready to get started with our app development.
+
+
+
+=cut
