@@ -253,14 +253,14 @@ first-class members of our application; they are the user's interface to
 our database, and our interface to the users.
 
 We'll keep our forms in Pizzaria::Web::Form.  For example, if we want a form
-to create a new user, it might be in Pizzaria::Web::Form::User::Register, or
+to create/register a new user, it might be in Pizzaria::Web::Form::User::Register, or
 if we want to update a user's profile, we could create a new form in
 Pizzaria::Web::Form::User::Update.
 
 	$ mkdir -p ./lib/Pizzaria/Web/Form
 
 With a little forethought, we can definitely save ourselves a lot of
-repitition.  We already said that the two main functions we want users to
+repetition.  We already said that the two main functions we want users to
 be able to do is register as users and modify their profiles.  It seems
 very likely that both forms will have a lot of fields in common, and 
 that we'll want the same restraints on fields shared by both forms.  So
@@ -274,7 +274,7 @@ Let's create a form for creating new users.
 
 	$ mkdir -p ./lib/Pizzaria/Web/Form/User
 	$ touch ./lib/Pizzaria/Web/Form/User.pm
-	$ touch ./lib/Pizzaria/Web/Form/User/Create.pm
+	$ touch ./lib/Pizzaria/Web/Form/User/Register.pm
 	$ touch ./lib/Pizzaria/Web/Form/User/Update.pm
 
 Great.  Next, let's create our base class in C<Pizzaria::Web::Form::User>.  
