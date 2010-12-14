@@ -25,23 +25,23 @@ of them, but if you're reading this, all of them will make your life easier.
 
 =over
 
-=item Catalyst L<read more|http://www.catalystframework.org/>
+=item Catalyst L<http://www.catalystframework.org/>
 
 The perl MVC framework
 
-=item HTML::FormHandler L<read more|http://search.cpan.org/~gshank/HTML-FormHandler-0.32005/lib/HTML/FormHandler.pm>
+=item HTML::FormHandler L<http://search.cpan.org/~gshank/HTML-FormHandler-0.32005/lib/HTML/FormHandler.pm>
 
 For creating, displaying, and validating forms
 
-=item jQuery L<read more|http://jquery.com/>
+=item jQuery L<http://jquery.com/>
 
 The Write Less, Do More, JavaScript Library
 
-=item jQuery UI L<read more|http://jqueryui.com/>
+=item jQuery UI L<http://jqueryui.com/>
 
 UI enhancement framework on top of jQuery
 
-=item Template Toolkit L<read more|http://template-toolkit.org/>
+=item Template Toolkit L<http://template-toolkit.org/>
 
 A fast, flexible and highly extensible template processing system.
 
@@ -204,7 +204,7 @@ is about how you create, retreive, update, or delete data (CRUD).
 
 =head3 The Schema
 
-For our purposes, let's assume that you're using L<mySQL|http://www.mysql.com/>
+For our purposes, let's assume that you're using MySQL L<http://www.mysql.com/>
 with L<DBIx::Class> and creating your schema with L<DBIx::Class::Schema::Loader>.
 Further, we'll just assume you've already created your schema using the
 following SQL:
@@ -278,8 +278,8 @@ Let's create a form for creating new users.
 	$ touch ./lib/Pizzaria/Web/Form/User/Update.pm
 
 Great.  Next, let's create our base class in C<Pizzaria::Web::Form::User>.  
-Before you go any further, read 
-L<this excellent introduction to HTML::FormHandler|http://www.catalyzed.org/2010/03/an-introduction-to-formhandler.html>
+Before you go any further, read this excellent introduction to 
+HTML::FormHandler L<http://www.catalyzed.org/2010/03/an-introduction-to-formhandler.html>
 if you haven't already.  We're lifting code from there I<en masse> and life
 will be easier for you if you understand what's covered there =)
 
@@ -442,11 +442,11 @@ Let's take a look at some particular plugins.
 If you're like me, you want lots of things to be happening with AJAX.  It lets
 you take advantage of the REST aspects of your app, lets you fire off asynchronous
 events, looks cool, and brings about world peace.  But how can we use forms 
-rendered through L<HTML::FormHandler> and L<The Template Toolkit|http://template-toolkit.org/>
+rendered through L<HTML::FormHandler> and L<the Template Toolkit|Template> (L<http://template-toolkit.org/>)
 to make AJAX calls?
 
 Thankfully, someone who calls himself I<malsup> thought of that and gave us a
-terrific solution:  L<the ajaxForm plugin|http://jquery.malsup.com/form/>!
+terrific solution:  the ajaxForm plugin L<http://jquery.malsup.com/form/>!
 
 First, of course, unzip the plugin into your javascript plugins directory and
 make sure it's getting loaded into the page in your template.
@@ -548,8 +548,8 @@ exercise to the reader to figure out how to derange his own forms.
 
 What if we want our user to register his birthday as well, so we can send him 
 a coupon for free pizza?  Easy.  Of course, go add the right fields to your
-form and the DB.  After that, we'll use jQuery UI's core plugin
-L<Datepicker|http://jqueryui.com/demos/datepicker/> to do the heavy lifting.
+form and the DB.  After that, we'll use jQuery UI's core plugin I<Datepicker>
+L<http://jqueryui.com/demos/datepicker/> to do the heavy lifting.
 
 Let's assume that your form input has the attribute C<class="date">.  We'll
 just attach the date-picker plugin to everything that's an C<input> tag with that class:
@@ -562,7 +562,7 @@ just attach the date-picker plugin to everything that's an C<input> tag with tha
 
 All done =)  It has sensible defaults to let you navigate the calendar with
 the keyboard, supports localization, allows for hooking, and vast arrays of
-customization.  Check out L<the demo|http://jqueryui.com/demos/datepicker/>
+customization.  Check out the demo at L<http://jqueryui.com/demos/datepicker/>
 for more information.
 
 =head3 Complex Layouts with C<UI.Layout>
@@ -570,7 +570,7 @@ for more information.
 "Oh! Oh!" you pine, "I need a complex layout with many panes and fancy things!
 Alas and alack, now I am lost!"
 
-But no!  Check out the venerable L<UI.Layout plugin|http://layout.jquery-dev.net/>
+But no!  Check out the venerable UI.Layout plugin (L<http://layout.jquery-dev.net/>)
 for jQuery.  It can help you get a multi-paned, collapsible, spectacular
 layout with relatively little markup.  It's a I<little> too involved to go
 into in this article, but look at the demos and you'll see everything you
@@ -604,9 +604,9 @@ A few of suggestions:
 
 =over 
 
-=item	Check out L<the jQuery API|http://api.jquery.com/>
+=item Check out the jQuery API at L<http://api.jquery.com/>.
 
-=item Peruse L<the jQuery UI demos|http://jqueryui.com/>
+=item Peruse the jQuery UI demos at L<http://jqueryui.com/>.
 
 =item Look at L<HTML::FormHandler> (but don't use dynamic forms =)
 
@@ -616,7 +616,8 @@ Play around with it!  With Catalyst and jQuery, you can get a stable, nice
 looking app running in no time.  You already knew that.
 
 There's a chance that I'll be extending this to a more thorough and complete
-set of tutorials.  If I do, you'll be able to find them at L<my blog|http://snugglepunk.blogspot.com>.
+set of tutorials.  If I do, you'll be able to find them at my blog 
+(L<http://snugglepunk.blogspot.com>).
 
 =head1 Author
 
@@ -625,6 +626,5 @@ Sir Robert Burbridge <sirrobert@gmail.com>
 =head1 Final words
 
 Merry Christmas!
-
 
 =cut
