@@ -205,7 +205,7 @@ is about how you create, retreive, update, or delete data (CRUD).
 =head3 The Schema
 
 For our purposes, let's assume that you're using MySQL (L<http://www.mysql.com/>)
-with (L<DBIx::Class> and creating your schema with L<DBIx::Class::Schema::Loader>).
+with L<DBIx::Class> and creating your schema with L<DBIx::Class::Schema::Loader>.
 Further, we'll just assume you've already created your schema using the
 following SQL:
 
@@ -442,7 +442,7 @@ Let's take a look at some particular plugins.
 If you're like me, you want lots of things to be happening with AJAX.  It lets
 you take advantage of the REST aspects of your app, lets you fire off asynchronous
 events, looks cool, and brings about world peace.  But how can we use forms 
-rendered through (L<HTML::FormHandler> and L<the Template Toolkit|Template> L<http://template-toolkit.org/>)
+rendered through L<HTML::FormHandler> and L<the Template Toolkit|Template> (L<http://template-toolkit.org/>)
 to make AJAX calls?
 
 Thankfully, someone who calls himself I<malsup> thought of that and gave us a
@@ -604,11 +604,11 @@ A few of suggestions:
 
 =over 
 
-=item Check out the jQuery API at (L<http://api.jquery.com/>).
+=item Check out the jQuery API (L<http://api.jquery.com/>).
 
-=item Peruse the jQuery UI demos at (L<http://jqueryui.com/>).
+=item Peruse the jQuery UI demos (L<http://jqueryui.com/>).
 
-=item Look at (L<HTML::FormHandler>) (but don't use dynamic forms =)
+=item Look at L<HTML::FormHandler> (but don't use dynamic forms =)
 
 =back
 
