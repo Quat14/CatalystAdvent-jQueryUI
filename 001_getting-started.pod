@@ -16,11 +16,12 @@ possible.
 The commands in the article assume you're using Linux.  If you aren't, adjust
 the commands accordingly (or switch to Linux ;).
 
-=head2 What you need to know already.
+=head2 Background knowledge
 
 This article assumes you already know some things.  If you don't already,
 please follow the provided links to read about those topics before continuing
-with this article.
+with this article.  You can probably make it through without knowing some
+of them, but if you're reading this, all of them will make your life easier.
 
 =over
 
@@ -46,7 +47,7 @@ A fast, flexible and highly extensible template processing system.
 
 =back
 
-=head2 Setting up your project
+=head2 Setting up the project
 
 For our purposes, we'll be working on a project that depicts a pizzaria
 (called, creatively, "Pizzaria") that takes orders online.  
@@ -193,6 +194,437 @@ directory.
 
 Great -- now we're ready to get started with our app development.
 
+=head2 Data is everything
+
+Your data is everything.  You can always fix a bad flow of logic in your
+controller, or even fix a bunk interface to your models... but if you have
+bad data, you're stuck.  For that reason, you should be thinking of your
+application as a data management process.  Everything in your application
+is about how you create, retreive, update, or delete data (CRUD).
+
+=head3 The Schema
+
+For our purposes, let's assume that you're using L<mySQL|http://www.mysql.com/>
+with L<DBIx::Class> and creating your schema with L<DBIx::Class::Schema::Loader>.
+Further, we'll just assume you've already created your schema using the
+following SQL:
+
+	CREATE TABLE IF NOT EXISTS `user` (
+		id INT(64) NOT NULL AUTO_INCREMENT,
+		password VARCHAR(32) NOT NULL default '',
+		email VARCHAR(32) NOT NULL default '',
+		first_name VARCHAR(32) NOT NUL default '',,
+		last_name VARCHAR(32) NOT NUL default '',,
+		registered TIMESTAMP NOT NULL DEFFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+		PRIMARY KEY (`id`),
+		UNIQUE (`email`)
+	) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+	CREATE TABLE IF NOT EXISTS `order` (
+		id INT(64) NOT NULL AUTO_INCREMENT,
+		user INT(64) NOT NULL DEFAULT '',
+		total INT(64) NOT NULL DEFAULT 0,
+		created_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		FOREIGN KEY (`user`) REFERENCES `user` (`id`)
+	) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+	-- ... and so on with tables for specials, toppings, or whatever.
+
+=head2 Inputs matter
+
+If the way you store data is critical, then just as critical is the way you
+B<acquire> it.  In a web app, much of the time, that's going to be done
+through the venerable HTML form.
+
+=head3 Defining Forms
+
+Forms are critical.  They control what information we take in, and when we
+validate our data, we validate what's come through our forms.  In fact, 
+forms are so critical we don't want them to be treated as second-class
+elements of our application; they are key components that deserve focused
+attention and first-class status.
+
+Now, for the most part forms we use in one interface are unlikely to be used
+others (when was the last time you filled out a form in a CLI?).  For that 
+reason, we're going to create a namespace in which to keep our forms; a
+dedicated library wing just for web forms.  All forms will go into this
+namespace, and no forms will be created without them.  Remember:  forms are 
+first-class members of our application; they are the user's interface to 
+our database, and our interface to the users.
+
+We'll keep our forms in Pizzaria::Web::Form.  For example, if we want a form
+to create a new user, it might be in Pizzaria::Web::Form::User::Register, or
+if we want to update a user's profile, we could create a new form in
+Pizzaria::Web::Form::User::Update.
+
+	$ mkdir -p ./lib/Pizzaria/Web/Form
+
+With a little forethought, we can definitely save ourselves a lot of
+repitition.  We already said that the two main functions we want users to
+be able to do is register as users and modify their profiles.  It seems
+very likely that both forms will have a lot of fields in common, and 
+that we'll want the same restraints on fields shared by both forms.  So
+how do we usually do that?  Subclassing.  We're going to use the same
+concept here.  Let's create a form object for C<Pizzaria::Web::Form::User>,
+C<Pizzaria::Web::Form::User::Register>, and C<Pizzaria::Web::Form::User::Update>,
+in which our core functionality is described in the first, and the latter
+two contain only overriding modifications to the base class.
+
+Let's create a form for creating new users.
+
+	$ mkdir -p ./lib/Pizzaria/Web/Form/User
+	$ touch ./lib/Pizzaria/Web/Form/User.pm
+	$ touch ./lib/Pizzaria/Web/Form/User/Create.pm
+	$ touch ./lib/Pizzaria/Web/Form/User/Update.pm
+
+Great.  Next, let's create our base class in C<Pizzaria::Web::Form::User>.  
+Before you go any further, read 
+L<this excellent introduction to HTML::FormHandler|http://www.catalyzed.org/2010/03/an-introduction-to-formhandler.html>
+if you haven't already.  We're lifting code from there I<en masse> and life
+will be easier for you if you understand what's covered there =)
+
+...
+
+Our ::User package now looks like this:
+
+	package Pizzaria::Web::Form::User;
+
+	use HTML::FormHandler::Moose;
+	extends 'HTML::FormHandler::Model::DBIC';
+	with 'HTML::FormHandler::Render::Table';
+
+	has '+item_class' => (default => 'User');
+
+	has_field 'first_name' => (type => 'Text');
+	has_field 'last_name'  => (type => 'Text');
+	has_field 'email'      => (	
+		type => 'Email',
+		required => 1,
+		unique => 1,
+	);
+	has_field 'password'         => (type => 'Password');
+	has_field 'password_confirm' => (type => 'PasswordConf');
+
+	has '+unique_messages' =>	(
+		default => sub { 
+			{email => 'Email already registered'}
+		}
+	);
+
+	no HTML::FormHandler::Moose;
+	__PACKAGE__->meta->make_immutable;
+	1;
+
+Notice that we've omitted the "submit" field.  That's because this base class
+is never going to be used directly; it's just a foundation for our other user
+form classes.  Now we create our registration form:
+
+	package Pizzaria::Web::Form::User::Register;
+	
+	use HTML::FormHandler::Moose;
+	extends 'Pizzaria::Web::Form::User';
+	
+	has_field 'submit' => ( type => 'Submit', value => 'Register' );
+
+	no HTML::FormHandler::Moose;
+	__PACKAGE__->meta->make_immutable;
+	1;
+
+That was easy.  We just added a submit button and ... we're done.  The rest
+of the fields were inherited from the base class.  Now, when we want to create
+the registration form, we just create an instance of this class and
+render/validate/whatever it.  Let's make our user update form as well.
+
+	package Pizzaria::Web::Form::User::Update;
+	
+	use HTML::FormHandler::Moose;
+	extends 'Pizzaria::Web::Form::User';
+	
+	has_field 'submit' => (type => 'Submit', value => 'Update profile');
+
+	no HTML::FormHandler::Moose;
+	__PACKAGE__->meta->make_immutable;
+	1;
+
+Drop-dead simple.  We just changed name of the form (C<...::User::Update>) and the
+value of the submit button, and we're done.  All of our forms can be created and
+controlled with that much ease.
+
+=head3 Rendering forms
+
+When it's time to render our forms in our controllers, we can just do this:
+
+	package Pizzaria::Web::Controller::Registration;
+	use Moose;
+	use namespace::autoclean;
+
+	use Pizzaria::Web::Form::User::Register;
+
+	sub index :Chained('/') :PathPart('register') :Args(0) {
+		my ($self, $c) = @_;
+
+		### Or you could do this in /auto or something.
+		$c->stash->{forms} = {};
+
+		### Create our registration form.
+		$c->stash->{forms}->{register} = Pizzaria::Web::Form::User::Register->new();
+
+		### Process the form with any parameters that were submitted when the page
+		### was requested.
+		$c->stash->{forms}->{register}->process(params => {%{$c->request->parameters}});
+	}
+
+	1;
+
+Then in our template (C<./root/src/register/index.tt>):
+
+	...
+	<div id="register-new-user">
+	[% forms.register.render %]
+	</div>
+	...
+
+Which, for reference, renders our form something like this:
+
+	<div id="register-new-user">
+	<form id="form576" method="post" >
+	<table>
+		
+		<tr>
+			<td><label class="label" for="first_name">First name: </label></td>
+			<td><input type="text" name="first_name" id="first_name" value="" /></td>
+		</tr>
+		
+		<tr>
+			<td><label class="label" for="last_name">Last name: </label></td>
+			<td><input type="text" name="last_name" id="last_name" value="" /></td>
+		</tr>
+		
+		<tr>
+			<td><label class="label" for="email">Email: </label></td>
+			<td><input type="text" name="email" id="email" value="" /></td>
+		</tr>
+			
+		<tr>
+			<td><label class="label" for="password">Password: </label></td>
+			<td><input type="password" name="password" id="password" value="" /></td>
+		</tr>
+		
+		<tr>
+			<td><label class="label" for="password_confirm">Password confirm: </label></td>
+			<td><input type="password" name="password_confirm" id="password_confirm" value="" /></td>
+		</tr>
+		
+		<tr>
+			<td><input type="submit" name="submit" id="submit" value="Register" /></td>
+		</tr>
+	
+	</table>
+	</form>
+	</div>
+
+=head2 What about jQuery? (a.k.a.:  Plugins!)
+
+Ok, good for us; we can create forms easily ... but how about integration with
+jQuery?
+
+Great question.  Let's look at some ways we can spiffy-up our forms with jQuery.
+As we mentioned before, when you think jQuery, you should first think:  Plugins!
+
+jQuery's plugin community is like a decentralized CPAN.  If you want to do it,
+there's probably a plugin for it.  If you want to do it differently, leverage
+existing code to work for you.
+
+Let's take a look at some particular plugins.
+
+=head3 Unobtrusive AJAX with the C<ajaxForm> plugin
+
+If you're like me, you want lots of things to be happening with AJAX.  It lets
+you take advantage of the REST aspects of your app, lets you fire off asynchronous
+events, looks cool, and brings about world peace.  But how can we use forms 
+rendered through L<HTML::FormHandler> and L<The Template Toolkit|http://template-toolkit.org/>
+to make AJAX calls?
+
+Thankfully, someone who calls himself I<malsup> thought of that and gave us a
+terrific solution:  L<the ajaxForm plugin|http://jquery.malsup.com/form/>!
+
+First, of course, unzip the plugin into your javascript plugins directory and
+make sure it's getting loaded into the page in your template.
+
+Given the form (depicted previously), we can create a JavaScript file for the
+page in C<./root/static/javascript/register/index.tt>:
+
+	// Create an enclosure that localizes the jQuery framework into the $
+	// variable to avoid collisions with other frameworks.
+	;(function ($) {
+	
+		// Execute this function when the document has finished loading and 
+		// is ready for processing.
+		$(document).ready(function () {
+			
+			// Ajaxify our form.  Find it with a CSS 3 selector.
+			$("#register-new-user form").ajaxForm({
+				beforeSubmit: function () { /* ... */ }
+			,	success:      function () { /* ... */ }
+			})
+
+		})
+
+	})(jQuery)
+
+That's it =)  Now you can convert any form on your page to an AJAX form
+in a couple of lines of code.  For extra credit, you can use this to
+degrade gracefully in the event that the user has JavaScript disabled:
+the form still loads, but works as a regular cgi-style page submission!
+
+=head3 C<jQuery.ajax()> for REST
+
+So, you're big into REST, eh?  No problem =)  As you may know, not all
+browsers handle DELETE and PUT requests (and jQuery doesn't provide extra
+sugar for them).  With a tiny bit of footwork, though, we can side-step the
+issue.
+
+jQuery lets you submit forms via GET, POST, PUT, and DELETE.  Sugar is
+provided for GET and POST, but I don't use them to keep things uniform
+with my PUT and DELETE request.  Let's PUT a user from our registration
+form.
+
+	;(function ($) {
+		// Passing in a function is the same as passing it into $(document).ready()
+		$(function () {
+			
+			// Find the form
+			$("#register-new-user form")
+				// Hook into the "on-submit" handler.  Inside this function, "this"
+				// refers to the form element.
+				.submit(function () {
+
+					function _handleSuccess (data, textStatus, XMLHttpRequest) {
+						// ...
+					}
+
+					function _handleError (XMLHttpRequest, textStauts, errorThrown) {
+						// ...
+					}
+
+					$.ajax({
+						url:  $(this).attr("action")
+					, type: "PUT"
+					, data: $(this).serialize()
+					, dataType: "json"
+					,	success:	_handleSuccess
+					,	error:    _handleError
+					})
+				})
+		})
+	})
+
+=head3 Roll your own input tabbing
+
+That's all well and good, but what about tabbing?  Our users hate it when the
+tabbing is ordered counter-intuitively.  Tabbing should happen in the order
+of rendering on the page, right?  Easy enough:
+
+	;(function ($) {
+		$(function () {
+
+			// Start our tab indexing at 1.
+			var tab_index = 1;
+
+			// Use CSS3 selectors to get every element we want to be included 
+			// in the tab train.  Let's exclude hidden fields for obvious reasons.
+			$('input,select,button,textarea').not(':hidden')
+				.each(function () {
+					$(this).attr("tabindex", tabindex++);
+				})
+		})
+	})(jQuery)
+
+Yep; that's it.  Now your page's form elements will tab in order of rendering
+on the page.  Of course, you could make it more complex -- I'll leave it as an
+exercise to the reader to figure out how to derange his own forms.
+
+=head3 C<Datepicker> (jQuery UI core plugin)
+
+What if we want our user to register his birthday as well, so we can send him 
+a coupon for free pizza?  Easy.  Of course, go add the right fields to your
+form and the DB.  After that, we'll use jQuery UI's core plugin
+L<Datepicker|http://jqueryui.com/demos/datepicker/> to do the heavy lifting.
+
+Let's assume that your form input has the attribute C<class="date">.  We'll
+just attach the date-picker plugin to everything that's an C<input> tag with that class:
+
+	;(function ($) {
+		$(function () {
+			$("input.date").datepicker();
+		})
+	})(jQuery)
+
+All done =)  It has sensible defaults to let you navigate the calendar with
+the keyboard, supports localization, allows for hooking, and vast arrays of
+customization.  Check out L<the demo|http://jqueryui.com/demos/datepicker/>
+for more information.
+
+=head3 Complex Layouts with C<UI.Layout>
+
+"Oh! Oh!" you pine, "I need a complex layout with many panes and fancy things!
+Alas and alack, now I am lost!"
+
+But no!  Check out the venerable L<UI.Layout plugin|http://layout.jquery-dev.net/>
+for jQuery.  It can help you get a multi-paned, collapsible, spectacular
+layout with relatively little markup.  It's a I<little> too involved to go
+into in this article, but look at the demos and you'll see everything you
+need to get started.  It turns out it plays nicely with Catalyst and you
+can do magic things with the stash to keep your views simple, your 
+controllers light, and your users happy.
+
+=head2 Exercises for the Reader
+
+This has been a I<very> light introduction to using jQuery with Catalyst
+applications.  The goal here is to get you past the hurdles of getting
+started with jQuery.  With a bit of imagination, you can do some really
+neat things; and the interplay between Catalyst and jQuery can be really
+productive.
+
+The real win comes when you realize that your HTML should be 
+I<semantically meaningful> without any concerns for display.  Separate your
+concerns: let Catalyst manage your data and render your pages, let 
+CSS handle your display, and let JavaScript handle your interface behaviors.
+
+Every time you find yourself violating one of those boundaries, spend the 
+extra ten minutes or two hours to find the root of the problem and solve it
+correctly, and you'll find that over time your development and debugging 
+time and costs drop, and most of your development time is on enhancements.
+
+Do the Right Thing =)
+
+=head2 Further Reading
+
+A few of suggestions:
+
+=over 
+
+=item	Check out L<the jQuery API|http://api.jquery.com/>
+
+=item Peruse L<the jQuery UI demos|http://jqueryui.com/>
+
+=item Look at L<HTML::FormHandler> (but don't use dynamic forms =)
+
+=back
+
+Play around with it!  With Catalyst and jQuery, you can get a stable, nice
+looking app running in no time.  You already knew that.
+
+There's a chance that I'll be extending this to a more thorough and complete
+set of tutorials.  If I do, you'll be able to find them at L<my blog|http://snugglepunk.blogspot.com>.
+
+=head1 Author
+
+Sir Robert Burbridge <sirrobert@gmail.com>
+
+=head1 Final words
+
+Merry Christmas!
 
 
 =cut
