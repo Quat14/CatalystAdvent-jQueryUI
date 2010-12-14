@@ -619,9 +619,13 @@ There's a chance that I'll be extending this to a more thorough and complete
 set of tutorials.  If I do, you'll be able to find them at my blog 
 (L<http://snugglepunk.blogspot.com>).
 
-=head1 Author
+=head1 Author(s)
 
 Sir Robert Burbridge <sirrobert@gmail.com>
+
+=head2 Contributors
+
+Steve Schafer
 
 =head1 Final words
 
